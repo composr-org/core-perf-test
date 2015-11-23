@@ -14,26 +14,29 @@ function start() {
   //suscribeMemwatch(); //ENABLE AT WILL
   performanceTests(0, 1)
     .then(function() {
-      console.log('RESULTS', JSON.stringify(timeResults));
+      console.log('RESULTS', JSON.stringify(timeResults, null, 2));
     });
 }
 
 function performanceTests(currItem, currIteration) {
   if (currItem > options.length - 1) {
     return Promise.resolve();
+  } else if (options[currItem].iterations === 0) {
+    return performanceTests(currItem + 1, 1);
   } else {
     return suite(options[currItem], currIteration)
       .then(function(diff) {
         timeResults[options[currItem].name] = timeResults[options[currItem].name] ? timeResults[options[currItem].name] : [];
         timeResults[options[currItem].name].push({
-          time : timeTaken,
-          memoryDiff : diff.change.size_bytes
+          time: timeTaken,
+          memoryDiff: diff.change.size_bytes
         });
 
         var nextItem = currIteration < options[currItem].iterations ? currItem : currItem + 1;
-        var nextIteration = currIteration < options[currItem].iterations ? currIteration + 1 : 0;
+        var nextIteration = currIteration < options[currItem].iterations ? currIteration + 1 : 1;
         return performanceTests(nextItem, nextIteration);
       });
+
   }
 }
 
@@ -43,7 +46,7 @@ function suite(options, iteration) {
     .then(function() {
       hd = new memwatch.HeapDiff();
       console.log('Ready for execute tests');
-      console.time('Tests', options.name);
+      console.time('tests', options.name);
       profiler.startProfiling(id);
       time = Date.now();
 
@@ -53,7 +56,7 @@ function suite(options, iteration) {
       var profile = profiler.stopProfiling(id);
       timeTaken = Date.now() - time;
 
-      console.log('-------- RESULTS ----------');
+      console.log('-------- RESULTS ITERATION : ' + iteration + ' ----------');
       console.log('Time execution: ');
       console.timeEnd('tests');
       diff = hd.end();
@@ -97,7 +100,7 @@ function executeTests(times, options) {
 function writeResults(profile, name, id, diff) {
 
   return new Promise(function(resolve, reject) {
-    
+
     //console.log('Memory details: ', diff.change.details);
 
     profile.export(function(error, result) {

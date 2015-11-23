@@ -27,14 +27,14 @@ module.exports = [{
   }
 }, {
   name: 'vm', 
-  iterations : 5,
+  iterations : 0,
   options: {
     browser: false
   }
 },
 {
   name: 'vm with express',
-  iterations : 5,
+  iterations : 0,
   options: {
     browser: false,
     req: expressReq(),
