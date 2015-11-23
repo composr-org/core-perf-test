@@ -12,26 +12,30 @@ var timeResults = {};
  */
 function start() {
   //suscribeMemwatch(); //ENABLE AT WILL
-  performanceTests(0, Promise.resolve())
+  performanceTests(0, 1)
     .then(function() {
       console.log('TIME RESULTS', JSON.stringify(timeResults));
     });
 }
 
-function performanceTests(currItem) {
+function performanceTests(currItem, currIteration) {
   if (currItem > options.length - 1) {
     return Promise.resolve();
   } else {
-    return suite(options[currItem])
+    return suite(options[currItem], currIteration)
       .then(function() {
-        timeResults[options[currItem].name] = timeTaken;
-        return performanceTests(currItem + 1);
+        timeResults[options[currItem].name] = timeResults[options[currItem].name] ? timeResults[options[currItem].name] : [];
+        timeResults[options[currItem].name].push(timeTaken);
+
+        var nextItem = currIteration < options[currItem].iterations ? currItem : currItem + 1;
+        var nextIteration = currIteration < options[currItem].iterations ? currIteration + 1 : 0;
+        return performanceTests(nextItem, nextIteration);
       });
   }
 }
 
-function suite(options) {
-  var id = options.name + ' - ' + Date.now();
+function suite(options, iteration) {
+  var id = options.name + ' - Iteration ' + iteration;
   return before()
     .then(function() {
       hd = new memwatch.HeapDiff();
