@@ -14,7 +14,7 @@ function start() {
   //suscribeMemwatch(); //ENABLE AT WILL
   performanceTests(0, 1)
     .then(function() {
-      console.log('TIME RESULTS', JSON.stringify(timeResults));
+      console.log('RESULTS', JSON.stringify(timeResults));
     });
 }
 
@@ -23,9 +23,12 @@ function performanceTests(currItem, currIteration) {
     return Promise.resolve();
   } else {
     return suite(options[currItem], currIteration)
-      .then(function() {
+      .then(function(diff) {
         timeResults[options[currItem].name] = timeResults[options[currItem].name] ? timeResults[options[currItem].name] : [];
-        timeResults[options[currItem].name].push(timeTaken);
+        timeResults[options[currItem].name].push({
+          time : timeTaken,
+          memoryDiff : diff.change.size_bytes
+        });
 
         var nextItem = currIteration < options[currItem].iterations ? currItem : currItem + 1;
         var nextIteration = currIteration < options[currItem].iterations ? currIteration + 1 : 0;
@@ -40,7 +43,7 @@ function suite(options, iteration) {
     .then(function() {
       hd = new memwatch.HeapDiff();
       console.log('Ready for execute tests');
-      console.time('tests', options.name);
+      console.time('Tests', options.name);
       profiler.startProfiling(id);
       time = Date.now();
 
@@ -49,7 +52,12 @@ function suite(options, iteration) {
     .then(function() {
       var profile = profiler.stopProfiling(id);
       timeTaken = Date.now() - time;
-      return writeResults(profile, options.name, id);
+
+      console.log('-------- RESULTS ----------');
+      console.log('Time execution: ');
+      console.timeEnd('tests');
+      diff = hd.end();
+      return writeResults(profile, options.name, id, diff);
     })
     .catch(function(err) {
       console.log('Error', err);
@@ -86,15 +94,10 @@ function executeTests(times, options) {
   }
 }
 
-function writeResults(profile, name, id) {
+function writeResults(profile, name, id, diff) {
 
   return new Promise(function(resolve, reject) {
-    console.log('-------- RESULTS ----------');
-    console.log('Time execution: ');
-    console.timeEnd('tests');
-    diff = hd.end();
-
-    console.log('Memory increase: ', diff.change.size_bytes);
+    
     //console.log('Memory details: ', diff.change.details);
 
     profile.export(function(error, result) {
@@ -106,7 +109,7 @@ function writeResults(profile, name, id) {
         }
         fs.writeFileSync('./results/' + name + '/' + id + '.json', result);
         profile.delete();
-        resolve();
+        resolve(diff);
       }
     });
   });
