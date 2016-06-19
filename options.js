@@ -7,7 +7,15 @@ function expressReq() {
 
 function expressRes() {
   var res = require('./node_modules/express/lib/response');
-  return res;
+  res._headers =  {};
+  return {
+    status : function(){
+      return {
+        send : function(){}
+      }
+    },
+    send : function(){}
+  };
 }
 
 
@@ -17,7 +25,8 @@ module.exports = [{
   options: {
     browser: true,
     req: expressReq(),
-    res: expressRes()
+    res: expressRes(),
+    server : 'express'
   }
 },{
   name: 'browser',
@@ -27,17 +36,18 @@ module.exports = [{
   }
 }, {
   name: 'vm', 
-  iterations : 0,
+  iterations : 5,
   options: {
     browser: false
   }
 },
 {
   name: 'vm with express',
-  iterations : 0,
+  iterations : 5,
   options: {
     browser: false,
     req: expressReq(),
-    res: expressRes()
+    res: expressRes(),
+    server : 'express'
   }
 }];

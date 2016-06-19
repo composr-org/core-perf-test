@@ -61,7 +61,8 @@ function suite(options, iteration) {
       var profile = profiler.stopProfiling(id);
 
       diff = hd.end();
-      return writeResults(profile, options.name, id, diff);
+      return 
+writeResults(profile, options.name, id, diff);
     })
     .catch(function(err) {
       console.log('Error', err);
@@ -77,7 +78,7 @@ function before() {
       console.log('Registering phrases');
 
       suscribeLogs();
-      return composr.Phrase.register('mydomain', phrases);
+      return composr.Phrases.register('mydomain', phrases);
     })
     .then(function(results) {
       console.log(results.length, 'Items registered');
@@ -88,7 +89,7 @@ function before() {
 //Initialize
 function executeTests(times, options) {
   if (times > 0) {
-    return composr.Phrase.runByPath('mydomain', 'test/phrase', 'get', options)
+    return composr.Phrases.runByPath('mydomain', 'test/phrase', 'get', options)
       .then(function(response) {
         console.log('Execution', times);
         return executeTests(times - 1, options);
@@ -99,7 +100,6 @@ function executeTests(times, options) {
 }
 
 function writeResults(profile, name, id, diff) {
-  profile.delete();
   return Promise.resolve(diff);
   return new Promise(function(resolve, reject) {
 
