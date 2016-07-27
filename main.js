@@ -11,7 +11,7 @@ var timeResults = {};
  @TODO: Spawn child processes for clear memory usages
  */
 function start() {
-  //suscribeMemwatch(); //ENABLE AT WILL
+  suscribeMemwatch(); //ENABLE AT WILL
   performanceTests(0, 1)
     .then(function() {
       console.log('RESULTS', JSON.stringify(timeResults, null, 2));

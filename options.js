@@ -18,8 +18,7 @@ function expressRes() {
   };
 }
 
-
-module.exports = [{
+var options = [{
   name: 'browser with express',
   iterations : 5,
   options: {
@@ -50,4 +49,20 @@ module.exports = [{
     res: expressRes(),
     server : 'express'
   }
-}];
+}]
+
+var optionsWithoutServer = [{
+  name: 'browser',
+  iterations : 5,
+  options: {
+    browser: true
+  }
+}, {
+  name: 'vm', 
+  iterations : 5,
+  options: {
+    browser: false
+  }
+}]
+
+module.exports = optionsWithoutServer;
