@@ -43,7 +43,7 @@ function performanceTests(currItem, currIteration) {
 function suite(options, iteration) {
   var id = options.name + ' - Iteration ' + iteration;
 
-  return before()
+  return before(options.name, id)
     .then(function() {
       hd = new memwatch.HeapDiff();
       console.log('Ready for execute tests');
@@ -71,9 +71,15 @@ function suite(options, iteration) {
     })
 }
 
-function before() {
+function before(name, id) {
   composr = require('composr-core');
-  return composr.init({})
+
+  if (!fs.existsSync('./results/' + name)) {
+    fs.mkdirSync('./results/' + name);
+  }
+
+  return new Promise(function(resolve, reject){
+    composr.init({})
     .then(function() {
       //Ready to go
       console.log('Initialized');
@@ -84,8 +90,16 @@ function before() {
     })
     .then(function(results) {
       console.log(results.length, 'Items registered');
-      return composr;
+      var snapshot = profiler.takeSnapshot();
+
+      snapshot.export()
+        .pipe(fs.createWriteStream('./results/' + name + '/' + id + 'SNAPSHOT START.heapsnapshot'))
+        .on('finish', function(){
+          snapshot.delete();
+          resolve();
+        });
     });
+  });
 }
 
 //Initialize
@@ -113,14 +127,12 @@ function writeResults(profile, name, id, diff, snapshot) {
       if (error) {
         return reject(error);
       } else {
-        if (!fs.existsSync('./results/' + name)) {
-          fs.mkdirSync('./results/' + name);
-        }
+        
         fs.writeFileSync('./results/' + name + '/' + id + '.cpuprofile', result);
         profile.delete();
 
         snapshot.export()
-        .pipe(fs.createWriteStream('./results/' + name + '/' + id + 'SNAPSHOT.heapsnapshot'))
+        .pipe(fs.createWriteStream('./results/' + name + '/' + id + 'SNAPSHOT END.heapsnapshot'))
         .on('finish', function(){
           snapshot.delete();
           resolve(diff);
@@ -128,8 +140,8 @@ function writeResults(profile, name, id, diff, snapshot) {
       }
     });
   });
-
 }
+
 
 function suscribeLogs() {
   composr.events.on('debug', 'CorbelComposr', function() {
