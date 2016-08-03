@@ -42,15 +42,17 @@ function performanceTests(currItem, currIteration) {
 
 function suite(options, iteration) {
   var id = options.name + ' - Iteration ' + iteration;
+
   return before()
     .then(function() {
       hd = new memwatch.HeapDiff();
       console.log('Ready for execute tests');
       console.time('tests', options.name);
       profiler.startProfiling(id);
+      
       time = Date.now();
 
-      return executeTests(100, options.options);
+      return executeTests(1000, options.options);
     })
     .then(function() {
       timeTaken = Date.now() - time;
@@ -59,9 +61,10 @@ function suite(options, iteration) {
       console.timeEnd('tests');
 
       var profile = profiler.stopProfiling(id);
+      var snapshot = profiler.takeSnapshot();
 
       diff = hd.end();
-      return writeResults(profile, options.name, id, diff);
+      return writeResults(profile, options.name, id, diff, snapshot);
     })
     .catch(function(err) {
       console.log('Error', err);
@@ -98,12 +101,13 @@ function executeTests(times, options) {
   }
 }
 
-function writeResults(profile, name, id, diff) {
-  profile.delete();
-  return Promise.resolve(diff);
+function writeResults(profile, name, id, diff, snapshot) {
+  //profile.delete();
+  //return Promise.resolve(diff);
   return new Promise(function(resolve, reject) {
 
     //console.log('Memory details: ', diff.change.details);
+    
 
     profile.export(function(error, result) {
       if (error) {
@@ -112,9 +116,15 @@ function writeResults(profile, name, id, diff) {
         if (!fs.existsSync('./results/' + name)) {
           fs.mkdirSync('./results/' + name);
         }
-        fs.writeFileSync('./results/' + name + '/' + id + '.json', result);
+        fs.writeFileSync('./results/' + name + '/' + id + '.cpuprofile', result);
         profile.delete();
-        resolve(diff);
+
+        snapshot.export()
+        .pipe(fs.createWriteStream('./results/' + name + '/' + id + 'SNAPSHOT.heapsnapshot'))
+        .on('finish', function(){
+          snapshot.delete();
+          resolve(diff);
+        });
       }
     });
   });

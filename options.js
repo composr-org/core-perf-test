@@ -53,15 +53,9 @@ var options = [{
 
 var optionsWithoutServer = [{
   name: 'browser',
-  iterations : 5,
+  iterations : 1,
   options: {
     browser: true
-  }
-}, {
-  name: 'vm', 
-  iterations : 5,
-  options: {
-    browser: false
   }
 }]
 
